@@ -18,8 +18,12 @@ var url = [
     "http://www.csgolounge.com/mytrades"
 ];
 
+function save(arr) {
+    var str = JSON.stringify(arr);
+    sessionStorage.setItem('KEY', str);
+}
+
 if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
-    
     purgeBtn = document.createElement("a");
     purgeBtn.id = "menu";
     purgeBtn.addEventListener("click", purge);
@@ -27,28 +31,29 @@ if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
     purgeBtn.innerHTML = "<img src='http://csgolounge.com/img/trash.png'>PURGE</a>";
 
     function purge() {
+        linksArr = [];
         var prg = "#purge";
         var trades = document.querySelectorAll('.tradeheader');
-        var i = 0;
-        var loop = setInterval(function () {
-            var tradeID = trades[i].children[0].href;
-            if (tradeID === undefined) {
-                window.open(trades[i].children[1].href + prg);
+        for (i = 0; i < trades.length; i++) {
+            if (trades[i].children[0].href === undefined) {
+                linksArr.push(trades[i].children[1].href + prg);
             } else {
-            window.open(tradeID + prg);
+                linksArr.push(trades[i].children[0].href + prg);
             }
-            i++;
-            if (trades[i] === undefined) {
-                window.location.reload();
-            }
-        }, 7000);
+        }
+        var init = linksArr.shift();
+        save(linksArr);
+        setTimeout(function () {
+            window.location.replace(init);
+        }, 500);
     }
 } else if (window.location.href.match(/https:\/\/csgolounge\.com\/trade\?t=[0-9]*#purge/)) {
-
     var trashCan = document.querySelectorAll("#messages img");
     var img = "http://csgolounge.com/img/trash.png";
     var clean = document.querySelectorAll('.half')[1].children[0];
     var msg = document.querySelectorAll('.message');
+    var myArr = JSON.parse(sessionStorage.KEY);
+    var link = myArr.shift();
 
     if (trashCan.length > 1) {
         for (i = 0; i < trashCan.length; i++) {
@@ -64,8 +69,14 @@ if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
             }
         }
     } else {
+        save(myArr);
         setTimeout(function () {
-            window.close();
+            if (link === undefined) {
+                sessionStorage.removeItem('KEY');
+                window.location.replace('https://csgolounge.com/mytrades');
+            } else {
+                window.location.replace(link);
+            }
         }, 800);
     }
 }
