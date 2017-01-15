@@ -26,57 +26,39 @@ function save(arr) {
 if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
     purgeBtn = document.createElement("a");
     purgeBtn.id = "menu";
-    purgeBtn.addEventListener("click", purge);
     document.querySelector("#menu").appendChild(purgeBtn);
     purgeBtn.innerHTML = "<img src='http://csgolounge.com/img/trash.png'>PURGE</a>";
-
-    function purge() {
+    purgeBtn.addEventListener("click", function () {
         linksArr = [];
         var prg = "#purge";
         var trades = document.querySelectorAll('.tradeheader');
         for (i = 0; i < trades.length; i++) {
-            if (trades[i].children[0].href === undefined) {
-                linksArr.push(trades[i].children[1].href + prg);
-            } else {
-                linksArr.push(trades[i].children[0].href + prg);
-            }
+            if (!trades[i].children[0].href) linksArr.push(trades[i].children[1].href + prg);
+            else linksArr.push(trades[i].children[0].href + prg);
         }
         var init = linksArr.shift();
         save(linksArr);
-        setTimeout(function () {
-            window.location.replace(init);
-        }, 500);
-    }
+        window.location.replace(init);
+    });
 } else if (window.location.href.match(/https:\/\/csgolounge\.com\/trade\?t=[0-9]*#purge/)) {
-    var trashCan = document.querySelectorAll("#messages img");
-    var img = "http://csgolounge.com/img/trash.png";
+    var trashCan = document.querySelectorAll('#messages > div.message > div.msgleft > p > a:nth-child(1) > img');
     var clean = document.querySelectorAll('.half')[1].children[0];
     var msg = document.querySelectorAll('.message');
-    var myArr = JSON.parse(sessionStorage.KEY);
-    var link = myArr.shift();
+    var linksArr2 = JSON.parse(sessionStorage.KEY);
+    var link = linksArr2.shift();
 
-    if (trashCan.length > 1) {
+    if (msg.length > 2) {
         for (i = 0; i < trashCan.length; i++) {
-            if (trashCan[i].src == img) {
-                trashCan[i].click();
-                setTimeout(function () {
-                    clean.click();
-                }, 1500);
-            } else if (msg.length > 2) {
-                setTimeout(function () {
-                    clean.click();
-                }, 1500);
-            }
+            if (trashCan[i].src == "http://csgolounge.com/img/trash.png") trashCan[i].click();
         }
+        setTimeout(function(){
+            clean.click();
+        }, 1000);
     } else {
-        save(myArr);
-        setTimeout(function () {
-            if (link === undefined) {
-                sessionStorage.removeItem('KEY');
-                window.location.replace('https://csgolounge.com/mytrades');
-            } else {
-                window.location.replace(link);
-            }
-        }, 800);
+        save(linksArr2);
+        if (!link) {
+            sessionStorage.removeItem('KEY');
+            window.location.replace('https://csgolounge.com/mytrades');
+        } else window.location.replace(link);
     }
 }
