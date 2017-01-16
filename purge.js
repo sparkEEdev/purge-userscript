@@ -3,7 +3,7 @@
 // @namespace https://csgolounge.com/
 // @author Saša Marjanović <sasa.marjanovic1994@gmail.com>
 // @description Automated userscript which removes comments from CSGOLounge trades.
-// @version 1.0
+// @version 2.0
 // @include https://csgolounge.com/mytrades
 // @include http://csgolounge.com/mytrades
 // @include https://csgolounge.com/trade?t=*
