@@ -16,8 +16,7 @@ var url = [
     "http://csgolounge.com/mytrades",
     "https://www.csgolounge.com/mytrades",
     "http://www.csgolounge.com/mytrades",
-    "http://csgolounge.com/img/trash.png",
-    "http://csgolounge.com/img/ban.png"
+    "http://csgolounge.com/img/trash.png"
 ];
 
 function save(arr) {
@@ -45,19 +44,18 @@ if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
 } else if (window.location.href.match(/https:\/\/csgolounge\.com\/trade\?t=[0-9]*#purge/)) {
     var msgOpts = document.querySelectorAll('.opts');
     var clean = document.querySelectorAll('.half')[1].children[0];
-    var msg = document.querySelectorAll('.message');
     var linksArr2 = JSON.parse(sessionStorage.KEY);
     var link = linksArr2.shift();
 
-    if (msg.length > 2) {
+    if (msgOpts[0]) {
         msgOpts.forEach(function (val) {
             var remove = val.children[0];
             var block = val.children[1];
             if (val.parentElement.children[2].innerText.match(/http/i)) {
-                if ((remove.firstChild.src == url[4]) && (block.firstChild.src == url[5])) {
+                if (remove.firstChild.src == url[4]) {
                     block.click();
                     remove.click();
-                } else if (remove.firstChild.src == url[5]) remove.click();
+                } else if (remove.firstChild.src != url[4]) remove.click();
             } else remove.click();
         });
         setTimeout(function () {
