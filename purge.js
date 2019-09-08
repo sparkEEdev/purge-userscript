@@ -3,7 +3,7 @@
 // @namespace https://csgolounge.com/
 // @author Saša Marjanović <sasa.marjanovic1994@gmail.com>
 // @description Automated userscript which removes comments from CSGOLounge trades.
-// @version 2.1
+// @version 2.0
 // @include https://csgolounge.com/mytrades
 // @include http://csgolounge.com/mytrades
 // @include https://csgolounge.com/trade?t=*
@@ -11,61 +11,41 @@
 // @grant none
 // ==/UserScript==
 
-var url = [
-    "https://csgolounge.com/mytrades",
-    "http://csgolounge.com/mytrades",
-    "https://www.csgolounge.com/mytrades",
-    "http://www.csgolounge.com/mytrades",
-    "http://csgolounge.com/img/trash.png"
-];
+async function processComments(comments, headers) {
+    for (const comment of comments) {
+        if (!comment.deleted) await fetch(`https://csgolounge.com/v1/trades/250749140/replies/${comment.reply_id}/delete`, { method: 'DELETE', headers: headers });
+    };
+};
 
-function save(arr) {
-    var str = JSON.stringify(arr);
-    sessionStorage.setItem('KEY', str);
-}
+async function processTrades(trades, headers) {
+    for (const trade of trades) {
+        let data = await fetch(`https://csgolounge.com/v1/trades/${trade.trade_id}/`, { method: 'GET', headers: headers }).then(res => res.json());
+        let comments = await data.replies;
+        processComments(comments, headers);
+    };
+    document.querySelector('#purge').innerText = 'Done';
+};
 
-if (window.location.href.match(url[0] || url[1] || url[2] || url[3])) {
-    purgeBtn = document.createElement("a");
-    purgeBtn.id = "menu";
-    document.querySelector("#menu").appendChild(purgeBtn);
-    purgeBtn.innerHTML = "<img src='http://csgolounge.com/img/trash.png'>PURGE</a>";
-    purgeBtn.addEventListener("click", function () {
-        linksArr = [];
-        var prg = "#purge";
-        var trades = document.querySelectorAll('.tradeheader');
-        for (i = 0; i < trades.length; i++) {
-            if (!trades[i].children[0].href) linksArr.push(trades[i].children[1].href + prg);
-            else linksArr.push(trades[i].children[0].href + prg);
-        }
-        var init = linksArr.shift();
-        save(linksArr);
-        window.location.replace(init);
+window.addEventListener("load", () => {
+
+    let jwt = JSON.parse(window.localStorage.state).userInfo.session.token;
+
+    let headers = new Headers({
+        'Authorization': `JWT ${jwt}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
     });
-} else if (window.location.href.match(/https:\/\/csgolounge\.com\/trade\?t=[0-9]*#purge/)) {
-    var msgOpts = document.querySelectorAll('.opts');
-    var clean = document.querySelectorAll('.half')[1].children[0];
-    var linksArr2 = JSON.parse(sessionStorage.KEY);
-    var link = linksArr2.shift();
 
-    if (msgOpts[0]) {
-        msgOpts.forEach(function (val) {
-            var remove = val.children[0];
-            var block = val.children[1];
-            if (val.parentElement.children[2].innerText.match(/http/i)) {
-                if (remove.firstChild.src == url[4]) {
-                    block.click();
-                    remove.click();
-                } else if (remove.firstChild.src != url[4]) remove.click();
-            } else remove.click();
-        });
-        setTimeout(function () {
-            clean.click();
-        }, 1000);
-    } else {
-        save(linksArr2);
-        if (!link) {
-            sessionStorage.removeItem('KEY');
-            window.location.replace('https://csgolounge.com/mytrades');
-        } else window.location.replace(link);
-    }
-}
+    let purgeBtn = document.createElement("button");
+    purgeBtn.setAttribute('class', "btn___1hJZ9 btn-lg-extra___1fNLo btn-shadow___3x5BG btn-add-trade___3ZALd");
+    purgeBtn.setAttribute('id', 'purge');
+    purgeBtn.style = "margin-bottom: 10px";
+    purgeBtn.innerText = "PURGE";
+    document.querySelector(".main-column-left___1NKUB").prepend(purgeBtn);
+
+    purgeBtn.addEventListener('click', e => {
+        e.srcElement.innerText = 'Purging...';
+        fetch('https://csgolounge.com/v1/trades/my', { method: 'GET', headers: headers})
+            .then(res => res.json())
+            .then(data => processTrades(data.items.trades, headers));
+    });
+});
