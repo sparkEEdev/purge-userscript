@@ -11,9 +11,9 @@
 // @grant none
 // ==/UserScript==
 
-async function processComments(comments, headers) {
+async function processComments(trade, comments, headers) {
     for (const comment of comments) {
-        if (!comment.deleted) await fetch(`https://csgolounge.com/v1/trades/250749140/replies/${comment.reply_id}/delete`, { method: 'DELETE', headers: headers });
+        if (!comment.deleted) await fetch(`https://csgolounge.com/v1/trades/${trade}/replies/${comment.reply_id}/delete`, { method: 'DELETE', headers: headers });
     };
 };
 
@@ -21,7 +21,7 @@ async function processTrades(trades, headers) {
     for (const trade of trades) {
         let data = await fetch(`https://csgolounge.com/v1/trades/${trade.trade_id}/`, { method: 'GET', headers: headers }).then(res => res.json());
         let comments = await data.replies;
-        processComments(comments, headers);
+        processComments(trade.trade_id, comments, headers);
     };
     document.querySelector('#purge').innerText = 'Done';
 };
